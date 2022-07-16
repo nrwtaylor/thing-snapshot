@@ -37,7 +37,7 @@ var from = process.env.FROM;
 //var minutes = 1,
 the_interval = interval_milliseconds;
 
-setInterval(function () {
+interval = setInterval(function () {
   //exec("ping -c 3 localhost", puts);
 
   //  console.log("I am doing my 1 minute check again");
@@ -47,6 +47,7 @@ setInterval(function () {
     var host = h;
     handleLine(null);
   });
+  currentPollInterval = the_interval;
 }, the_interval);
 
 function handleLine(line) {
@@ -85,12 +86,19 @@ function handleLine(line) {
     } else {
       agent_input = data;
 
+try {
+parsed = JSON.parse(agent_input);
+} catch (e) {
+parsed = {error:'JSON parse error'};
+}
+
       var arr = {
         from: from,
         to: to,
         subject: subject,
-        agent_input: JSON.parse(agent_input),
+        agent_input: parsed,
         precedence: "routine",
+        interval: currentPollInterval,
       };
       console.log(arr);
       var datagram = JSON.stringify(arr);
@@ -105,7 +113,34 @@ function handleLine(line) {
           .then((result) => {
             const thing_report = result.data.thingReport;
 
+            const requestedPollInterval =
+              thing_report && thing_report.requested_poll_interval;
             console.log("thing_report", thing_report);
+            console.log("requested_poll_interval", requestedPollInterval);
+
+            if (
+              parseFloat(requestedPollInterval) !==
+              parseFloat(currentPollInterval)
+            ) {
+              if (requestedPollInterval === "x") {
+              } else if (requestedPollInterval === "z") {
+              } else {
+                var i = parseFloat(requestedPollInterval);
+                clearInterval(interval);
+                interval = setInterval(function () {
+                  //exec("ping -c 3 localhost", puts);
+
+                  //  console.log("I am doing my 1 minute check again");
+                  // do your stuff here
+                  console.log("hosts", hosts);
+                  hosts.map((h) => {
+                    var host = h;
+                    handleLine(null);
+                  });
+                  currentPollInterval = i;
+                }, i);
+              }
+            }
 
             // Create a fallback message.
             // Which says 'sms'.
@@ -125,8 +160,8 @@ function handleLine(line) {
               var message = "Quietness. Just quietness.";
             }
 
-           // console.log(thing_report);
-           // console.log(thing_report.link);
+            // console.log(thing_report);
+            // console.log(thing_report.link);
             //    const image_url = thing_report && thing_report.link ? thing_report.link + '.png' : null
 
             const image_url =
