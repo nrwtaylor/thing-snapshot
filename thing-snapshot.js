@@ -29,13 +29,13 @@ Standard stack stuff above.
 var hosts = process.env.STATIONS.split(" ");
 var channel = process.env.CHANNEL;
 var transport = process.env.TRANSPORT;
-var interval_minutes = process.env.INTERVAL;
+var interval_milliseconds = process.env.INTERVAL;
 var http_transport = process.env.HTTP_TRANSPORT;
 var station = process.env.STATION;
 var from = process.env.FROM;
 
 //var minutes = 1,
-the_interval = interval_minutes * 60 * 1000;
+the_interval = interval_milliseconds;
 
 setInterval(function () {
   //exec("ping -c 3 localhost", puts);
@@ -89,7 +89,7 @@ function handleLine(line) {
         from: from,
         to: to,
         subject: subject,
-        agent_input: agent_input,
+        agent_input: JSON.parse(agent_input),
         precedence: "routine",
       };
       console.log(arr);
