@@ -33,6 +33,7 @@ var interval_milliseconds = process.env.INTERVAL;
 var http_transport = process.env.HTTP_TRANSPORT;
 var station = process.env.STATION;
 var from = process.env.FROM;
+var snapshotPath = process.env.SNAPSHOT;
 
 //var minutes = 1,
 the_interval = interval_milliseconds;
@@ -79,18 +80,22 @@ function handleLine(line) {
   //console.log("SUBJECT", subject);
   const timestamp = new Date();
   const utc = timestamp.toUTCString();
-
-  fs.readFile("/var/www/kplex-thing/snapshot.json", "utf8", (err, data) => {
+try {
+console.log("foo");
+  fs.readFile(snapshotPath, "utf8", (err, data) => {
+console.log(snapshotPath);
+console.log(err);
+console.log(data);
     if (err) {
       agent_input = `Error reading file from disk: ${err}`;
     } else {
       agent_input = data;
 
-try {
-parsed = JSON.parse(agent_input);
-} catch (e) {
-parsed = {error:'JSON parse error'};
-}
+      try {
+        parsed = JSON.parse(agent_input);
+      } catch (e) {
+        parsed = { error: "JSON parse error" };
+      }
 
       var arr = {
         from: from,
@@ -100,6 +105,7 @@ parsed = {error:'JSON parse error'};
         precedence: "routine",
         interval: currentPollInterval,
       };
+      console.log("Prepared snapshot datagram");
       console.log(arr);
       var datagram = JSON.stringify(arr);
 
@@ -187,4 +193,8 @@ parsed = {error:'JSON parse error'};
       }
     }
   });
+} catch (err) {
+console.log(err);
+}
+
 }

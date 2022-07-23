@@ -32,5 +32,8 @@
     "udp-node": "^2.1.0",
     "var_dump": "^1.0.5",
     "winston": "^0.7.1"
+  },
+  "devDependencies": {
+    "prettier": "2.7.1"
   }
 }
