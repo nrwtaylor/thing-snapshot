@@ -3,6 +3,10 @@
 require("dotenv").config();
 
 const fs = require("fs");
+const {
+  promises: { readFile },
+} = require("fs");
+
 const axios = require("axios");
 
 const datagrams = [{}];
@@ -30,39 +34,23 @@ interval = setInterval(function () {
   // do your stuff here
   console.log("hosts", hosts);
 
-const promises =[];
+  const promises = [];
 
   hosts.map((h) => {
     console.log("Interval: Process host " + host);
     var host = h;
 
+    //    handleLine(null);
 
-//    handleLine(null);
+    const q = handleLine(null);
+    promises.push(q);
 
-                    const q = handleLine(null);
-promises.push(q);
-                  
-Promise.all(promises).then((values, index) => {
-console.log(">>>>>>>>>>>>>>>>>.promises");
-console.log(values);
+    Promise.all(promises).then((values, index) => {
+      console.log(">>>>>>>>>>>>>>>>>.promises");
+      console.log(values);
+    });
 
-})
-
-//});
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    //});
   });
   currentPollInterval = the_interval;
 }, the_interval);
@@ -92,27 +80,37 @@ function handleLine(line) {
   // Otherwise this is a different datagram.
   // Save it in local memory cache.
 
+  // https://dev.to/aminnairi/read-files-using-promises-in-node-js-1mg6
+
   //console.log("SUBJECT", subject);
   const timestamp = new Date();
   const utc = timestamp.toUTCString();
   try {
-    fs.readFile(snapshotPath, "utf8", (err, data) => {
-      console.log("Reading file at " + snapshotPath + ".");
+    //    fs.readFile(snapshotPath, "utf8", (err, data) => {
+    Promise.all([readFile(snapshotPath), readFile("/tmp/snapshot-ping.json")])
+      .then((promises) => {
+        const data = promises[0];
+        const data2 = promises[1];
+        console.log("data2", data2);
 
-      if (err) {
-        agent_input = `Error reading file from disk: ${err}`;
-        console.log(agent_input);
-      } else {
+        console.log("Reading file at " + snapshotPath + ".");
+
+        //      if (err) {
+        //        agent_input = `Error reading file from disk: ${err}`;
+        //        console.log(agent_input);
+        //      } else {
+        //      if (true) {
         agent_input = data;
 
         try {
           parsed = JSON.parse(agent_input);
+          parsed2 = JSON.parse(data2);
         } catch (e) {
           parsed = { error: "JSON parse error" };
         }
 
         //parsed = {...parsed, {snapshot:{refreshedAt:0}}};
-        parsed = { ...parsed, refreshedAt: timestamp };
+        parsed = { ...parsed, ...parsed2, refreshedAt: timestamp };
         console.log(parsed);
         var arr = {
           from: from,
@@ -134,7 +132,7 @@ function handleLine(line) {
               },
             })
             .then((result) => {
-//              console.log("result", result);
+              //              console.log("result", result);
               const thing_report = result.data.thingReport;
 
               const requestedPollInterval =
@@ -205,10 +203,42 @@ function handleLine(line) {
             .catch((error) => {
               console.log(error);
             });
+          //        }
         }
-      }
-    });
+      })
+      .catch((error) => {
+        console.error(error);
+
+        if (error) {
+          agent_input = `Error reading file from disk: ${error}`;
+          //        console.log(agent_input);
+          //      } else {
+        }
+      });
   } catch (err) {
     console.log(err);
   }
+}
+
+function t() {
+  fs.readFile(snapshotPath, "utf8", (err, data) => {
+    console.log("Reading file at " + snapshotPath + ".");
+
+    if (err) {
+      agent_input = `Error reading file from disk: ${err}`;
+      console.log(agent_input);
+    } else {
+      agent_input = data;
+
+      try {
+        parsed = JSON.parse(agent_input);
+      } catch (e) {
+        parsed = { error: "JSON parse error" };
+      }
+
+      //parsed = {...parsed, {snapshot:{refreshedAt:0}}};
+      parsed = { ...parsed, refreshedAt: timestamp };
+      console.log(parsed);
+    }
+  });
 }
