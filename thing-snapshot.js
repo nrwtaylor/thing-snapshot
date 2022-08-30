@@ -111,6 +111,7 @@ function handleLine(line) {
 
         //parsed = {...parsed, {snapshot:{refreshedAt:0}}};
         parsed = { ...parsed, ...parsed2, refreshedAt: timestamp };
+
         console.log(parsed);
         var arr = {
           from: from,
@@ -123,6 +124,14 @@ function handleLine(line) {
         console.log("Prepared snapshot datagram");
         console.log(arr);
         var datagram = JSON.stringify(arr);
+
+var snapshot = JSON.stringify({...arr, thingReport:{snapshot:parsed}});
+
+fs.writeFile('/tmp/snapshot.json',snapshot, 'utf8', function (err) {
+  if (err) return console.log(err);
+  console.log('Hello World > helloworld.txt');
+});
+
 
         if (transport === "apache") {
           axios
