@@ -12,7 +12,7 @@ const axios = require("axios");
 const datagrams = [{}];
 
 // 26 September 2021
-console.log("thing-snapshot 1.0.1 4 August 2022");
+console.log("thing-snapshot 1.0.2 6 September 2022");
 
 /*
 Standard stack stuff above.
@@ -125,13 +125,15 @@ function handleLine(line) {
         console.log(arr);
         var datagram = JSON.stringify(arr);
 
-var snapshot = JSON.stringify({...arr, thingReport:{snapshot:parsed}});
+        var snapshot = JSON.stringify({
+          ...arr,
+          thingReport: { snapshot: parsed },
+        });
 
-fs.writeFile('/tmp/snapshot.json',snapshot, 'utf8', function (err) {
-  if (err) return console.log(err);
-  console.log('Hello World > helloworld.txt');
-});
-
+        fs.writeFile("/tmp/snapshot.json", snapshot, "utf8", function (err) {
+          if (err) return console.log(err);
+          console.log("Hello World > helloworld.txt");
+        });
 
         if (transport === "apache") {
           axios
@@ -210,22 +212,26 @@ fs.writeFile('/tmp/snapshot.json',snapshot, 'utf8', function (err) {
               }
             })
             .catch((error) => {
-              console.log(error);
+              console.log("POST ERROR", error);
+Promise.resolve('ignore');
             });
           //        }
         }
       })
       .catch((error) => {
-        console.error(error);
+        console.error("Read error", error);
 
         if (error) {
           agent_input = `Error reading file from disk: ${error}`;
           //        console.log(agent_input);
           //      } else {
         }
+Promise.resolve('ignore');
+
+
       });
   } catch (err) {
-    console.log(err);
+    console.log("Promise all", err);
   }
 }
 
