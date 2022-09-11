@@ -12,11 +12,7 @@ const axios = require("axios");
 const datagrams = [{}];
 
 // 26 September 2021
-console.log("thing-snapshot 1.0.2 6 September 2022");
-
-/*
-Standard stack stuff above.
-*/
+console.log("thing-snapshot 1.0.3 10 September 2022");
 
 var hosts = process.env.STATIONS.split(" ");
 var channel = process.env.CHANNEL;
@@ -25,33 +21,13 @@ var interval_milliseconds = process.env.INTERVAL;
 var http_transport = process.env.HTTP_TRANSPORT;
 var station = process.env.STATION;
 var from = process.env.FROM;
-var snapshotPath = process.env.SNAPSHOT;
+var snapshotPaths = process.env.SNAPSHOTS.split(" ");
 
-//var minutes = 1,
 the_interval = interval_milliseconds;
 
 interval = setInterval(function () {
-  // do your stuff here
-  console.log("hosts", hosts);
+  const q = handleLine(null);
 
-  const promises = [];
-
-  hosts.map((h) => {
-    console.log("Interval: Process host " + host);
-    var host = h;
-
-    //    handleLine(null);
-
-    const q = handleLine(null);
-    promises.push(q);
-
-    Promise.all(promises).then((values, index) => {
-      console.log(">>>>>>>>>>>>>>>>>.promises");
-      console.log(values);
-    });
-
-    //});
-  });
   currentPollInterval = the_interval;
 }, the_interval);
 
@@ -86,32 +62,31 @@ function handleLine(line) {
   const timestamp = new Date();
   const utc = timestamp.toUTCString();
   try {
-    //    fs.readFile(snapshotPath, "utf8", (err, data) => {
-    Promise.all([readFile(snapshotPath), readFile("/tmp/snapshot-ping.json")])
+    const p = snapshotPaths.map((snapshotPath) => {
+      return readFile(snapshotPath)
+        .then((result) => {
+          return result;
+        })
+        .catch((error) => {
+          return null;
+        });
+    });
+
+    Promise.all(p)
       .then((promises) => {
         const data = promises[0];
-        const data2 = promises[1];
-        console.log("data2", data2);
 
-        console.log("Reading file at " + snapshotPath + ".");
-
-        //      if (err) {
-        //        agent_input = `Error reading file from disk: ${err}`;
-        //        console.log(agent_input);
-        //      } else {
-        //      if (true) {
         agent_input = data;
 
-        try {
-          parsed = JSON.parse(agent_input);
-          parsed2 = JSON.parse(data2);
-        } catch (e) {
-          parsed = { error: "JSON parse error" };
-        }
+        var parsed = promises.map((data) => {
+          try {
+            return JSON.parse(data);
+          } catch (e) {
+            return { error: "JSON parse error" };
+          }
+        });
 
-        //parsed = {...parsed, {snapshot:{refreshedAt:0}}};
-        parsed = { ...parsed, ...parsed2, refreshedAt: timestamp };
-
+        parsed = { ...parsed, refreshedAt: timestamp };
         console.log(parsed);
         var arr = {
           from: from,
@@ -132,7 +107,7 @@ function handleLine(line) {
 
         fs.writeFile("/tmp/snapshot.json", snapshot, "utf8", function (err) {
           if (err) return console.log(err);
-          console.log("Hello World > helloworld.txt");
+          console.log("Wrote snapshot file.");
         });
 
         if (transport === "apache") {
@@ -143,7 +118,6 @@ function handleLine(line) {
               },
             })
             .then((result) => {
-              //              console.log("result", result);
               const thing_report = result.data.thingReport;
 
               const requestedPollInterval =
@@ -190,8 +164,6 @@ function handleLine(line) {
                 var message = "Quietness. Just quietness.";
               }
 
-              // console.log(thing_report);
-              // console.log(thing_report.link);
               //    const image_url = thing_report && thing_report.link ? thing_report.link + '.png' : null
 
               const image_url =
@@ -199,7 +171,6 @@ function handleLine(line) {
                   ? thing_report.image_url
                   : null;
 
-              // console.log(image_url);
               if (sms !== null) {
                 if (image_url === null) {
                   console.log(sms);
@@ -213,9 +184,8 @@ function handleLine(line) {
             })
             .catch((error) => {
               console.log("POST ERROR", error);
-Promise.resolve('ignore');
+              Promise.resolve("ignore");
             });
-          //        }
         }
       })
       .catch((error) => {
@@ -223,37 +193,10 @@ Promise.resolve('ignore');
 
         if (error) {
           agent_input = `Error reading file from disk: ${error}`;
-          //        console.log(agent_input);
-          //      } else {
         }
-Promise.resolve('ignore');
-
-
+        Promise.resolve("ignore");
       });
   } catch (err) {
     console.log("Promise all", err);
   }
-}
-
-function t() {
-  fs.readFile(snapshotPath, "utf8", (err, data) => {
-    console.log("Reading file at " + snapshotPath + ".");
-
-    if (err) {
-      agent_input = `Error reading file from disk: ${err}`;
-      console.log(agent_input);
-    } else {
-      agent_input = data;
-
-      try {
-        parsed = JSON.parse(agent_input);
-      } catch (e) {
-        parsed = { error: "JSON parse error" };
-      }
-
-      //parsed = {...parsed, {snapshot:{refreshedAt:0}}};
-      parsed = { ...parsed, refreshedAt: timestamp };
-      console.log(parsed);
-    }
-  });
 }
