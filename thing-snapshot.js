@@ -10,7 +10,7 @@ const {
 const axios = require("axios");
 
 const datagrams = [{}];
-
+const ignoreRemotePollInterval = false;
 // 26 September 2021
 console.log("thing-snapshot 1.0.3 10 September 2022");
 
@@ -74,20 +74,28 @@ function handleLine(line) {
 
     Promise.all(p)
       .then((promises) => {
-        const data = promises[0];
+        const data2 = promises[0];
 
-        agent_input = data;
-
+        //        agent_input = data;
+        var c = {};
         var parsed = promises.map((data) => {
           try {
+            const x = JSON.parse(data);
+            c = { ...c, ...x };
             return JSON.parse(data);
           } catch (e) {
             return { error: "JSON parse error" };
           }
         });
 
-        parsed = { ...parsed, refreshedAt: timestamp };
-        console.log(parsed);
+        //const p = JSON.parse(data2);
+        const p = c;
+        //        parsed = { ...parsed, refreshedAt: timestamp };
+        //        parsed = { ...parsed, refreshedAt: timestamp };
+        parsed = { ...p, refreshedAt: timestamp };
+
+        console.log("parsed", parsed);
+
         var arr = {
           from: from,
           to: to,
@@ -132,17 +140,19 @@ function handleLine(line) {
                 if (requestedPollInterval === "x") {
                 } else if (requestedPollInterval === "z") {
                 } else {
-                  var i = parseFloat(requestedPollInterval);
-                  clearInterval(interval);
-                  interval = setInterval(function () {
-                    // do your stuff here
-                    console.log("hosts", hosts);
-                    hosts.map((h) => {
-                      var host = h;
-                      handleLine(null);
-                    });
-                    currentPollInterval = i;
-                  }, i);
+                  if (ignoreRemotePollInterval) {
+                    var i = parseFloat(requestedPollInterval);
+                    clearInterval(interval);
+                    interval = setInterval(function () {
+                      // do your stuff here
+                      console.log("hosts", hosts);
+                      hosts.map((h) => {
+                        var host = h;
+                        handleLine(null);
+                      });
+                      currentPollInterval = i;
+                    }, i);
+                  }
                 }
               }
 
