@@ -14,6 +14,9 @@ const datagrams = [{}];
 // 14 November 2022
 console.log("thing-history 1.0.1 15 November 2022");
 
+// And then quiet.
+console.log = function() {}
+
 /*
 Standard stack stuff above.
 */
@@ -120,7 +123,7 @@ function handleLine(line) {
                 setHistory(slug, slicedItems);
 
                 const runTime = new Date() - startTime;
-                console.log(
+                console.info(
                   slug,
                   "processed in",
                   runTime,
@@ -134,7 +137,7 @@ function handleLine(line) {
               })
               .catch((error) => {
                 console.log("did not get history", slug);
-                console.log(error);
+                console.error(error);
                 setHistory(slug, value);
               });
           });
