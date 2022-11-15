@@ -11,8 +11,8 @@ const axios = require("axios");
 
 const datagrams = [{}];
 
-// 26 September 2021
-console.log("thing-history 1.0.0 14 November 2022");
+// 14 November 2022
+console.log("thing-history 1.0.1 15 November 2022");
 
 /*
 Standard stack stuff above.
@@ -25,13 +25,14 @@ var interval_milliseconds = process.env.INTERVAL;
 var http_transport = process.env.HTTP_TRANSPORT;
 var station = process.env.STATION;
 var from = process.env.FROM;
-var snapshotPath = process.env.SNAPSHOT;
 
 var historyWindowSize = process.env.HISTORY_WINDOW_SIZE; //8;
 
 var to = "history";
 
-//var minutes = 1,
+const keyPathname = process.env.KEY_PATHNAME;
+const snapshotPathnames = process.env.SNAPSHOT_PATHNAMES.split(",");
+
 the_interval = interval_milliseconds;
 
 interval = setInterval(function () {
@@ -60,52 +61,24 @@ interval = setInterval(function () {
 }, the_interval);
 
 function handleLine(line) {
-  /*
-        REFERENCE
-        $datagram = [
-            "to" => "null" . $this->mail_postfix,
-            "from" => "job",
-            "subject" => "s/ job stack",
-        ];
-  */
-
-  //  var to = channel;
-
-  //var to = "snapshot";
-  //  var from = channel;
-
-  //const subject = line;
   var agent_input = "snapshot";
 
-  //  match = false;
-
-  //console.log(subject);
-
-  // Otherwise this is a different datagram.
-  // Save it in local memory cache.
-
-  // https://dev.to/aminnairi/read-files-using-promises-in-node-js-1mg6
-
-  //console.log("SUBJECT", subject);
   const timestamp = new Date();
   const utc = timestamp.toISOString();
   try {
-    //    fs.readFile(snapshotPath, "utf8", (err, data) => {
-    Promise.all([
-      readFile(snapshotPath),
-      readFile("/tmp/snapshot-ping.json"),
-    ]).then((promises) => {
+    const promiseArray = snapshotPathnames.map((snapshotPathname) => {
+      return readFile(snapshotPathname);
+    });
+
+    const readStartTime = new Date();
+    Promise.all(promiseArray).then((promises) => {
+      const readRunTime = new Date() - readStartTime;
+      console.log("Read file in", readRunTime, "ms.");
+
       const data = promises[0];
       const data2 = promises[1];
       console.log("data2", data2);
 
-      console.log("Reading file at " + snapshotPath + ".");
-
-      //      if (err) {
-      //        agent_input = `Error reading file from disk: ${err}`;
-      //        console.log(agent_input);
-      //      } else {
-      //      if (true) {
       agent_input = data;
 
       try {
@@ -116,59 +89,48 @@ function handleLine(line) {
       }
 
       //parsed = {...parsed, {snapshot:{refreshedAt:0}}};
-      parsed = { ...parsed, ...parsed2, refreshedAt: timestamp };
-
-      /*
-Object.keys(headers).forEach(function storeLowerName(name) {
-thing-ping-broken-27-aug-2022/node_modules/axios/lib/utils.js:    // Iterate over object keys
-thing-ping-broken-27-aug-2022/node_modules/axios/lib/helpers/validator.js:  var keys = Object.keys(options);
-thing-ping-broken-27-aug-2022/node_modules/axios/lib/helpers/validator.js:  var i = keys.length;
-thing-ping-broken-27-aug-2022/node_modules/axios/lib/helpers/validator.js:    var opt = keys[i];
-thing-ping-broken-27-aug-2022/node_modules/axios/lib/core/mergeConfig.js:  utils.forEach(Object.keys(config1).concat(Object.keys(config2)), function computeConfigValue(prop) {
-*/
-
-      //parsed.forEach((element, value)=>{
-
-      //     console.log(parsed.transducers);
-      //console.log(element, value);
-      //});
-      //console.log(parsed.ping);
+      parsed = { ...parsed, ...parsed2, refreshedAt: utc };
 
       Object.keys(parsed).forEach((name) => {
         if (["ping", "transducers"].includes(name)) {
           const elements = parsed[name];
 
           Object.keys(elements).forEach((elementText) => {
+            const startTime = new Date();
+
             const slug = (name + "-" + elementText).toLowerCase();
-
-            //console.log(slug, elementText, elements[elementText]);
-
             const key = slug;
-            //var to = "snapshot";
 
             const value = elements[elementText];
 
             // Do Mongo write here
             getHistory(slug)
               .then((result) => {
+                const isValidHistory = Array.isArray(result.agent_input);
 
-const isValidHistory = Array.isArray(result.agent_input);
+                const event = { event: value, eventAt: getTimestamp() };
+                var items = [event];
 
-const event = {event:value, eventAt:getTimestamp()};
-var items = [event];
+                if (isValidHistory) {
+                  items = result.agent_input;
+                  items.push(event);
+                }
+                const slicedItems = items.slice(-1 * historyWindowSize);
 
-//  console.log("slug items", slug, items);
-
-
-
-if (isValidHistory) {
-  items = result.agent_input;
-//  console.log("isValidHistory", slug, items, result.agent_input);
-  items.push(event);
-  //const slicedItems = items.slice(-1 * historyWindow);
-}
-const slicedItems = items.slice(-1 * historyWindowSize);
                 setHistory(slug, slicedItems);
+
+                const runTime = new Date() - startTime;
+                console.log(
+                  slug,
+                  "processed in",
+                  runTime,
+                  "ms",
+                  "has",
+                  slicedItems.length,
+                  "items."
+                );
+
+                //                setHistory(slug, slicedItems);
               })
               .catch((error) => {
                 console.log("did not get history", slug);
@@ -178,57 +140,56 @@ const slicedItems = items.slice(-1 * historyWindowSize);
           });
         }
       });
+
+      const totalRunTime = new Date() - readStartTime;
+      console.log("totalRunTime", totalRunTime, "ms");
     });
   } catch (err) {
-    console.log("Promise all", err);
+    console.log("Promise all erro", err);
   }
 }
 
 function getTimestamp() {
-
   const timestamp = new Date();
   const utc = timestamp.toISOString();
-return utc;
-
+  return utc;
 }
 
 function getHistory(slug) {
-var parsed = "";
-  const snapshotPath = "/tmp/" + slug + ".json";
+  var parsed = "";
+  //const snapshotPath = "/tmp/" + slug + ".json";
+  const snapshotPath = keyPathname + slug + ".json";
+  console.log("snapshotPath", snapshotPath);
 
-const p = new Promise((resolve, reject) => {
+  const p = new Promise((resolve, reject) => {
+    fs.readFile(snapshotPath, "utf8", (err, data) => {
+      //console.log("Reading file at " + snapshotPath + ".");
 
-  fs.readFile(snapshotPath, "utf8", (err, data) => {
-    console.log("Reading file at " + snapshotPath + ".");
+      if (err) {
+        agent_input = `Error reading file from disk: ${err}`;
+        console.log(agent_input);
+        reject({ error: agent_input });
+      } else {
+        agent_input = data;
 
-    if (err) {
-      agent_input = `Error reading file from disk: ${err}`;
-      console.log(agent_input);
-      reject( {error:agent_input});
-    } else {
-      agent_input = data;
+        try {
+          parsed = JSON.parse(agent_input);
+        } catch (e) {
+          parsed = { error: "JSON parse error" };
+          reject(parsed);
+        }
 
-      try {
-        parsed = JSON.parse(agent_input);
-      } catch (e) {
-        parsed = { error: "JSON parse error" };
-        reject(parsed);
+        const timestamp = new Date();
+        const utc = timestamp.toUTCString();
+
+        parsed = { ...parsed, refreshedAt: utc };
+
+        //console.log("getHistory slug parsed", slug, parsed);
+        resolve(parsed);
       }
-
-      const timestamp = new Date();
-      const utc = timestamp.toUTCString();
-
-      parsed = { ...parsed, refreshedAt: utc };
-
-      console.log("getHistory slug parsed", slug, parsed); 
-      resolve(parsed);
-
-    }
-
-});
-})
-    return p;
-
+    });
+  });
+  return p;
 }
 
 function setHistory(slug, history) {
@@ -242,17 +203,14 @@ function setHistory(slug, history) {
     precedence: "routine",
     interval: currentPollInterval,
   };
-  //console.log("Prepared snapshot datagram");
-  //console.log(arr);
   var datagram = JSON.stringify(arr);
 
   var snapshot = JSON.stringify({
     ...arr,
-//    thingReport: { snapshot: parsed },
+    //    thingReport: { snapshot: parsed },
   });
 
-  fs.writeFile("/tmp/" + slug + ".json", snapshot, "utf8", function (err) {
-
+  fs.writeFile(keyPathname + slug + ".json", snapshot, "utf8", function (err) {
     if (err) return console.log(err);
     //console.log("Write file", slug, snapshot);
     //console.log("Hello World > helloworld.txt");
@@ -272,7 +230,7 @@ function setHistory(slug, history) {
         const requestedPollInterval =
           thing_report && thing_report.requested_poll_interval;
         //console.log("thing_report", thing_report);
-       // console.log("requested_poll_interval", requestedPollInterval);
+        // console.log("requested_poll_interval", requestedPollInterval);
 
         if (
           parseFloat(requestedPollInterval) !== parseFloat(currentPollInterval)
@@ -284,7 +242,7 @@ function setHistory(slug, history) {
             clearInterval(interval);
             interval = setInterval(function () {
               // do your stuff here
-             // console.log("hosts", hosts);
+              // console.log("hosts", hosts);
               hosts.map((h) => {
                 var host = h;
                 handleLine(null);
@@ -339,5 +297,3 @@ function setHistory(slug, history) {
       });
   }
 }
-
-
