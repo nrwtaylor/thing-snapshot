@@ -12,7 +12,9 @@ const axios = require("axios");
 const datagrams = [{}];
 
 // 26 September 2021
-console.log("thing-snapshot 1.0.2 6 September 2022");
+console.log("thing-snapshot 1.0.3 15 November 2022");
+
+console.log = function() {}
 
 /*
 Standard stack stuff above.
@@ -93,7 +95,7 @@ function handleLine(line) {
         const data2 = promises[1];
         console.log("data2", data2);
 
-        console.log("Reading file at " + snapshotPath + ".");
+        console.info("Reading file at " + snapshotPath + ".");
 
         //      if (err) {
         //        agent_input = `Error reading file from disk: ${err}`;
@@ -130,9 +132,11 @@ function handleLine(line) {
           thingReport: { snapshot: parsed },
         });
 
+        const snapshotFile = "/tmp/snapshot.json";
+
         fs.writeFile("/tmp/snapshot.json", snapshot, "utf8", function (err) {
-          if (err) return console.log(err);
-          console.log("Hello World > helloworld.txt");
+          if (err) return console.error(err);
+          console.info("Wrote file to", snapshotFile);
         });
 
         if (transport === "apache") {
@@ -184,7 +188,7 @@ function handleLine(line) {
                 //var agent = thing_report.agent;
                 //var uuid = thing_report.thing.uuid;
               } catch (e) {
-                console.log(e);
+                console.error(e);
 
                 var sms = "quiet";
                 var message = "Quietness. Just quietness.";
@@ -212,7 +216,14 @@ function handleLine(line) {
               }
             })
             .catch((error) => {
-              console.log("POST ERROR", error);
+
+if (error && error.code === 'ENOTFOUND') {
+console.error("POST ERROR ENOTFOUND", http_transport); 
+Promise.resolve('ignore');
+
+
+}
+              console.error("POST ERROR", error);
 Promise.resolve('ignore');
             });
           //        }
@@ -231,17 +242,17 @@ Promise.resolve('ignore');
 
       });
   } catch (err) {
-    console.log("Promise all", err);
+    console.error("Promise all", err);
   }
 }
 
 function t() {
   fs.readFile(snapshotPath, "utf8", (err, data) => {
-    console.log("Reading file at " + snapshotPath + ".");
+    console.info("thing-snapshot reading file at " + snapshotPath + ".");
 
     if (err) {
       agent_input = `Error reading file from disk: ${err}`;
-      console.log(agent_input);
+      console.error(agent_input);
     } else {
       agent_input = data;
 
