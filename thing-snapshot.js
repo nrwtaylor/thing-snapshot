@@ -95,7 +95,7 @@ function handleLine(line) {
         const data2 = promises[1];
         console.log("data2", data2);
 
-        console.info("Reading file at " + snapshotPath + ".");
+        console.log("thing-snapshot Reading file at " + snapshotPath + ".");
 
         //      if (err) {
         //        agent_input = `Error reading file from disk: ${err}`;
@@ -136,7 +136,7 @@ function handleLine(line) {
 
         fs.writeFile("/tmp/snapshot.json", snapshot, "utf8", function (err) {
           if (err) return console.error(err);
-          console.info("Wrote file to", snapshotFile);
+          console.log("thing-snapshot Wrote file to", snapshotFile);
         });
 
         if (transport === "apache") {
@@ -248,7 +248,7 @@ Promise.resolve('ignore');
 
 function t() {
   fs.readFile(snapshotPath, "utf8", (err, data) => {
-    console.info("thing-snapshot reading file at " + snapshotPath + ".");
+    console.log("thing-snapshot reading file at " + snapshotPath + ".");
 
     if (err) {
       agent_input = `Error reading file from disk: ${err}`;
