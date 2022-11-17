@@ -36,19 +36,7 @@ var to = "history";
 const keyPathname = process.env.KEY_PATHNAME;
 const snapshotPathnames = process.env.SNAPSHOT_PATHNAMES.split(",");
 
-
 the_interval = interval_milliseconds;
-the_interval_1 = 120000;
-the_interval_2 = 240000;
-
-const intervals = [
-{milliseconds:the_interval, text:''},
-{milliseconds:120000, text:'2m'},
-{milliseconds:600000, text:'10m'},
-{milliseconds:3600000, text:'1h'},
-
-];
-
 
 interval = setInterval(function () {
   // do your stuff here
@@ -62,7 +50,7 @@ interval = setInterval(function () {
 
     //    handleLine(null);
 
-    const q = handleLine(intervals[0].text);
+    const q = handleLine(null);
     promises.push(q);
 
     Promise.all(promises).then((values, index) => {
@@ -73,98 +61,10 @@ interval = setInterval(function () {
     //});
   });
   currentPollInterval = the_interval;
-}, intervals[0].milliseconds);
+}, the_interval);
 
-
-interval1 = setInterval(function () {
-  // do your stuff here
-  console.log("hosts", hosts);
-
-  const promises = [];
-
-  hosts.map((h) => {
-    console.log("Interval: Process host " + host);
-    var host = h;
-
-    //    handleLine(null);
-
-    const q = handleLine(intervals[1].text);
-    promises.push(q);
-
-    Promise.all(promises).then((values, index) => {
-      console.log(">>>>>>>>>>>>>>>>>.promises");
-      console.log(values);
-    });
-
-    //});
-  });
-  currentPollInterval = the_interval;
-}, intervals[1].milliseconds);
-
-interval2 = setInterval(function () {
-  // do your stuff here
-  console.log("hosts", hosts);
-
-  const promises = [];
-
-  hosts.map((h) => {
-    console.log("Interval: Process host " + host);
-    var host = h;
-
-    //    handleLine(null);
-
-    const q = handleLine(intervals[2].text);
-    promises.push(q);
-
-    Promise.all(promises).then((values, index) => {
-      console.log(">>>>>>>>>>>>>>>>>.promises");
-      console.log(values);
-    });
-
-    //});
-  });
-  currentPollInterval = the_interval;
-}, intervals[2].milliseconds);
-
-
-interval3 = setInterval(function () {
-  // do your stuff here
-  console.log("hosts", hosts);
-
-  const promises = [];
-
-  hosts.map((h) => {
-    console.log("Interval: Process host " + host);
-    var host = h;
-
-    //    handleLine(null);
-
-    const q = handleLine(intervals[3].text);
-    promises.push(q);
-
-    Promise.all(promises).then((values, index) => {
-      console.log(">>>>>>>>>>>>>>>>>.promises");
-      console.log(values);
-    });
-
-    //});
-  });
-  currentPollInterval = the_interval;
-}, intervals[3].milliseconds);
-
-
-
-
-function handleLine(input) {
+function handleLine(line) {
   var agent_input = "snapshot";
-
-  var line = "";
-  if (!((input === null) || (input === ""))) {
-     line = "-" + input; 
-  }
-
-//  if (input.text) {line = input.text === "" ? "" : "-"+input.text;}
-
 
   const timestamp = new Date();
   const utc = timestamp.toISOString();
@@ -207,7 +107,7 @@ function handleLine(input) {
             const value = elements[elementText];
 
             // Do Mongo write here
-            getHistory(slug+line)
+            getHistory(slug)
               .then((result) => {
                 const isValidHistory = Array.isArray(result.agent_input);
 
@@ -220,7 +120,7 @@ function handleLine(input) {
                 }
                 const slicedItems = items.slice(-1 * historyWindowSize);
 
-                setHistory(slug+line, slicedItems);
+                setHistory(slug, slicedItems);
 
                 const runTime = new Date() - startTime;
                 console.info(
@@ -238,7 +138,7 @@ function handleLine(input) {
               .catch((error) => {
                 console.log("did not get history", slug);
                 console.error(error);
-                setHistory(slug+line, value);
+                setHistory(slug, value);
               });
           });
         }
