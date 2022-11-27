@@ -43,8 +43,11 @@ the_interval_2 = 240000;
 
 const intervals = [
 {milliseconds:the_interval, text:''},
+{milliseconds:60000, text:'1m'},
 {milliseconds:120000, text:'2m'},
 {milliseconds:600000, text:'10m'},
+{milliseconds:900000, text:'15m'},
+{milliseconds:1800000, text:'30m'},
 {milliseconds:3600000, text:'1h'},
 
 ];
