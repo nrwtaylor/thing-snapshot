@@ -139,7 +139,9 @@ function handleLine(line) {
           console.log("thing-snapshot Wrote file to", snapshotFile);
         });
 
+
         if (transport === "apache") {
+        //if (true === false) {
           axios
             .post(http_transport, datagram, {
               headers: {
@@ -219,10 +221,24 @@ function handleLine(line) {
 
 if (error && error.code === 'ENOTFOUND') {
 console.error("POST ERROR ENOTFOUND", http_transport); 
-Promise.resolve('ignore');
+return Promise.resolve('ignore');
+}
 
+if (error && error.code ==='ECONNRESET') {
+
+console.error("POST ERROR ECONNRESET", http_transport); 
+return Promise.resolve('ignore');
 
 }
+
+if (error && error.code ==='ETIMEDOUT') {
+
+console.error("POST ERROR ETIMEDOUT", http_transport); 
+return Promise.resolve('ignore');
+
+}
+
+
               console.error("POST ERROR", error);
 Promise.resolve('ignore');
             });
