@@ -1,0 +1,13 @@
+[Unit]
+Description=Thing-Snapshot
+After=
+
+[Service]
+EnvironmentFile=/path/to/thing-snapshot/.env
+Type=simple
+User=nick
+ExecStart=/usr/local/bin/node --max-old-space-size=1024 /path/to/thing-snapshot.js
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
