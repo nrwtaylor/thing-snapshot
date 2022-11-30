@@ -155,6 +155,83 @@ interval3 = setInterval(function () {
   currentPollInterval = the_interval;
 }, intervals[3].milliseconds);
 
+interval4 = setInterval(function () {
+  // do your stuff here
+  console.log("hosts", hosts);
+
+  const promises = [];
+
+  hosts.map((h) => {
+    console.log("Interval: Process host " + host);
+    var host = h;
+
+    //    handleLine(null);
+
+    const q = handleLine(intervals[4].text);
+    promises.push(q);
+
+    Promise.all(promises).then((values, index) => {
+      console.log(">>>>>>>>>>>>>>>>>.promises");
+      console.log(values);
+    });
+
+    //});
+  });
+  currentPollInterval = the_interval;
+}, intervals[4].milliseconds);
+
+
+interval5 = setInterval(function () {
+  // do your stuff here
+  console.log("hosts", hosts);
+
+  const promises = [];
+
+  hosts.map((h) => {
+    console.log("Interval: Process host " + host);
+    var host = h;
+
+    //    handleLine(null);
+
+    const q = handleLine(intervals[5].text);
+    promises.push(q);
+
+    Promise.all(promises).then((values, index) => {
+      console.log(">>>>>>>>>>>>>>>>>.promises");
+      console.log(values);
+    });
+
+    //});
+  });
+  currentPollInterval = the_interval;
+}, intervals[5].milliseconds);
+
+
+interval6 = setInterval(function () {
+  // do your stuff here
+  console.log("hosts", hosts);
+
+  const promises = [];
+
+  hosts.map((h) => {
+    console.log("Interval: Process host " + host);
+    var host = h;
+
+    //    handleLine(null);
+
+    const q = handleLine(intervals[6].text);
+    promises.push(q);
+
+    Promise.all(promises).then((values, index) => {
+      console.log(">>>>>>>>>>>>>>>>>.promises");
+      console.log(values);
+    });
+
+    //});
+  });
+  currentPollInterval = the_interval;
+}, intervals[6].milliseconds);
+
 
 
 
@@ -183,6 +260,8 @@ function handleLine(input) {
 
       const data = promises[0];
       const data2 = promises[1];
+      const data3 = promises[2];
+
       console.log("data2", data2);
 
       agent_input = data;
@@ -190,15 +269,17 @@ function handleLine(input) {
       try {
         parsed = JSON.parse(agent_input);
         parsed2 = JSON.parse(data2);
+        parsed3 = JSON.parse(data3);
+
       } catch (e) {
         parsed = { error: "JSON parse error" };
       }
 
       //parsed = {...parsed, {snapshot:{refreshedAt:0}}};
-      parsed = { ...parsed, ...parsed2, refreshedAt: utc };
+      parsed = { ...parsed, ...parsed2, ...parsed3, refreshedAt: utc };
 
       Object.keys(parsed).forEach((name) => {
-        if (["ping", "transducers"].includes(name)) {
+        if (["ping", "transducers", "cellular-modem"].includes(name)) {
           const elements = parsed[name];
 
           Object.keys(elements).forEach((elementText) => {
