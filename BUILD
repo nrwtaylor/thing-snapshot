@@ -1,4 +1,4 @@
-Make thing-discord.service in /etc/systemd/system
+Make thing-history.service in /etc/systemd/system
 
 ---
 https://stackoverflow.com/questions/4018154/how-do-i-run-a-node-js-app-as-a-background-service
@@ -21,11 +21,11 @@ See logs with journalctl -u myapp
 ---
 
 [Unit]
-Description=Thing-Discord
-After=mysqld.service
+Description=Thing-History
+After=
 
 [Service]
-ExecStart=/var/www/thing-discord/thing-discord.js
+ExecStart=/var/www/thing-history/thing-history.js
 #Restart=on-failure
 Restart=on-failure
 RestartSec=10
@@ -34,7 +34,7 @@ User=nobody
 Group=nogroup
 Environment=PATH=/usr/bin:/usr/local/bin
 Environment=NODE_ENV=production
-WorkingDirectory=/var/www/thing-discord
+WorkingDirectory=/var/www/thing-history
 
 [Install]
 WantedBy=multi-user.target

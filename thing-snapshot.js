@@ -89,7 +89,7 @@ function handleLine(line) {
   const utc = timestamp.toUTCString();
   try {
     //    fs.readFile(snapshotPath, "utf8", (err, data) => {
-    Promise.all([readFile(snapshotPath), readFile("/tmp/snapshot-ping.json")])
+    Promise.all([readFile(snapshotPath), readFile("/var/www/variables/snapshot/snapshot-ping.json")])
       .then((promises) => {
         const data = promises[0];
         const data2 = promises[1];
